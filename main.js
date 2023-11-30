@@ -10,12 +10,16 @@ const sizes={
 const speedDown = 450;
 
 
-//GET HTML TAGS
+//GET HTML TAGS and functionalities
 const gameStartDiv = document.querySelector("#gameStartDiv");
 const gameStartBtn = document.querySelector("#gameStartBtn");
 const gameEndDiv = document.querySelector("#gameEndDiv");
 const gameWinLoseSpan = document.querySelector("#gameWinLoseSpan");
 const gameEndScoreSpan = document.querySelector("#gameEndScoreSpan");
+gameStartBtn.addEventListener("click", () => {
+    gameStartDiv.style.display = "none";
+    game.scene.resume("scene-game");
+})
 
 
 //class game scene from phaser game engine
@@ -23,13 +27,16 @@ class GameScene extends Phaser.Scene{
     constructor(){
         super("scene-game");
 
+
         //player stuff
         this.player;
         this.cursor;
         this.playerSpeed = speedDown + 50;
 
+
         //enemy stuff
         this.target;
+
 
         //gameplay stuff
         this.points = 0;
@@ -41,7 +48,6 @@ class GameScene extends Phaser.Scene{
         this.bgMusic;
         this.explosion;
         this.explosionEmitter
-
     };
 
 
@@ -61,10 +67,12 @@ class GameScene extends Phaser.Scene{
     };
 
 
-    //on begin play
+    //on begin play do all this
     create(){
 
+        //start game paused (to show menu)
         this.scene.pause("scene-game")
+
 
         //sounds
         this.explosion = this.sound.add("explosion");
@@ -73,9 +81,9 @@ class GameScene extends Phaser.Scene{
         //this.bgMusic.stop();
 
 
-
-        //background
+        //background image
         this.add.image(0,0,"bg").setOrigin(0,0);
+
 
         //player
         this.player = this.physics.add.image(0,sizes.height-100,"player").setOrigin(0,0);
@@ -84,6 +92,7 @@ class GameScene extends Phaser.Scene{
         this.player.body.allowGravity = false;
         this.player.setCollideWorldBounds(true);
         this.player.setSize(800,950).setOffset(90,0);
+
 
         //astheroid
         this.target = this.physics.add.image(0, 0, "astheroid").setOrigin(0, 0);
@@ -111,7 +120,7 @@ class GameScene extends Phaser.Scene{
         this.timedEvent = this.time.delayedCall(30000, this.gameOver,[], this)
 
 
-        //defines emitter
+        //definition and settings for emitter
         this.explosionEmitter=this.add.particles(0,0,"explosionEmitter", {
             speed:100,
             gravityY:speedDown-200,
@@ -119,28 +128,29 @@ class GameScene extends Phaser.Scene{
             duration:100,
             emitting:false
         })
-
         this.explosionEmitter.setScale(0.4);
-
-
         this.explosionEmitter.startFollow(this.target, this.target.width / 2, this.target.height / 2,
         true);
     };
 
 
-    //event tick
+    //event tick, while game is running, keep doing all this inside
     update(){
+
+
+        //get the timer information and attribute to a variable and updates the screen text
         this.remainingTime=this.timedEvent.getRemainingSeconds();
         this.textTime.setText(`Remaining Time: ${Math.round(this.remainingTime).toString()}`)
 
-        //When reach bottom realocates to Top
+
+        //When the object reach the bottom of screen realocates to Top (Y) with X (horizontal) in a random value between specified number
         if (this.target.y >= sizes.height) {
             this.target.setY(0);
             this.target.setX(Math.floor(Math.random() * 950));
+        };
 
-        }
 
-        //control movement direction
+        //control movement direction by assigning values to X and Y axis 
         const { up, down, left, right } = this.cursor;
         if (left.isDown) {
             this.player.setVelocityX(-this.playerSpeed);
@@ -153,26 +163,19 @@ class GameScene extends Phaser.Scene{
         }else {
             this.player.setVelocityX(0);
             this.player.setVelocityY(0);
-        }
-
-
+        };
     };
 
 
-
-    //Enemy Collision
+    //Function to deal with collision settings for an object
     targetHit() {
-        this.target.setY(0);
-        this.target.setX(Math.floor(Math.random() * 950));
-        this.explosionEmitter.start();
-        this.explosion.play();
-        this.points++;
-        this.textScore.setText(`Score: ${this.points}`);
-
-    }
-
-
-
+        this.target.setY(0); //makes it go back to Y 0;
+        this.target.setX(Math.floor(Math.random() * 950)); //set a random X location between the calculation of a specified number;
+        this.explosionEmitter.start(); //calls emitter variable to scene (not playing yet);
+        this.explosion.play(); //calls emitter function to render in screen;
+        this.points++; //add points when this collision happens;
+        this.textScore.setText(`Score: ${this.points}`); //Set text for Score text screen object;
+    };
 
 
     //Game Over Function
@@ -182,7 +185,7 @@ class GameScene extends Phaser.Scene{
         gameWinLoseSpan.textContent = "Your Score"
 
         gameEndDiv.style.display="flex"
-    }
+    };
 }
 
 
@@ -202,8 +205,3 @@ const config = {
     scene:[GameScene]
 };
 const game = new Phaser.Game(config);
-
-gameStartBtn.addEventListener("click", () => {
-    gameStartDiv.style.display = "none";
-    game.scene.resume("scene-game");
-})
